@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة وتنظيم مواعيد عيادة طب الأسنان</title>
+    <!-- استدعاء خط Cairo من Google Fonts لدعم اللغة العربية بشكل أنيق -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- استدعاء مكتبة Tailwind CSS للتصميم -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- استدعاء أيقونات Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        medical: {
+                            50: '#F0F7FF',
+                            100: '#E0F2FE',
+                            200: '#BAE6FD',
+                            500: '#0EA5E9',
+                            600: '#0284C7',
+                            700: '#0369A1',
+                            800: '#075985',
+                            900: '#0C4A6E',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #F8FAFC;
+            color: #0F172A;
+        }
+        /* تأثير اهتزاز عند إدخال رمز خاطئ */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+            75% { transform: translateX(-8px); }
+        }
+        .animate-shake {
+            animation: shake 0.35s ease-in-out;
+        }
+        /* شريط تمرير مخصص باللون الأزرق الطبي */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F0F7FF;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #BAE6FD;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0284C7;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-medical-600 selection:text-white">
+
+    <!-- ==================== 1. شاشة الحماية برمز الدخول (1990) ==================== -->
+    <div id="lockScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-medical-900 via-medical-800 to-medical-600 p-4 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8 text-center border border-medical-100 relative overflow-hidden">
+            <!-- شريط علوي زخرفي -->
+            <div class="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-medical-500 to-medical-700"></div>
+            
+            <!-- أيقونة العيادة -->
+            <div class="w-20 h-20 mx-auto mb-5 rounded-2xl bg-medical-50 border border-medical-200 flex items-center justify-center text-medical-600 shadow-sm">
+                <i class="ph-fill ph-tooth text-5xl"></i>
+            </div>
+
+            <h1 class="text-2xl font-extrabold text-slate-900 mb-1">عيادة طب الأسنان التخصصية</h1>
+            <p class="text-sm text-slate-500 mb-6">نظام إدارة المواعيد وترتيب أولويات المراجعين</p>
+
+            <form id="loginForm" class="space-y-4">
+                <div class="text-right">
+                    <label for="passcodeInput" class="block text-sm font-bold text-slate-700 mb-2">
+                        <i class="ph ph-lock-key text-medical-600 ml-1"></i> أدخل الرمز السري للنظام
+                    </label>
+                    <input 
+                        type="password" 
+                        id="passcodeInput" 
+                        inputmode="numeric"
+                        maxlength="10"
+                        placeholder="••••" 
+                        required
+                        class="w-full text-center text-2xl tracking-[0.5em] font-bold py-3.5 px-4 rounded-xl border-2 border-medical-200 bg-medical-50/50 text-medical-900 focus:outline-none focus:border-medical-600 focus:bg-white transition-all"
+                    >
+                </div>
+
+                <!-- رسالة الخطأ -->
+                <div id="loginError" class="hidden items-center justify-center gap-2 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 py-2.5 px-3 rounded-xl">
+                    <i class="ph-fill ph-warning-circle text-lg"></i>
+                    <span>الرمز السري غير صحيح! يرجى المحاولة مرة أخرى.</span>
+                </div>
+
+                <button 
+                    type="submit" 
+                    class="w-full py-3.5 px-6 rounded-xl bg-medical-600 hover:bg-medical-700 active:scale-[0.99] text-white font-bold text-base shadow-lg shadow-medical-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                    <span>فتح لوحة التحكم</span>
+                    <i class="ph-bold ph-arrow-left"></i>
+                </button>
+            </form>
+
+            <div class="mt-6 pt-4 border-t border-slate-100 text-xs text-slate-400 flex items-center justify-center gap-1">
+                <i class="ph ph-shield-check text-medical-600 text-base"></i>
+                <span>نظام محمي ومخصص لكادر العيادة فقط</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 2. الواجهة الرئيسية للتطبيق ==================== -->
+    <div id="mainApp" class="hidden flex-1 flex flex-col">
+        
+        <!-- الشريط العلوي (Header) -->
+        <header class="bg-white border-b border-medical-100 sticky top-0 z-30 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+                <!-- الشعار والعنوان -->
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-medical-600 text-white flex items-center justify-center shadow-md shadow-medical-600/20">
+                        <i class="ph-fill ph-tooth text-3xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg sm:text-xl font-extrabold text-slate-900 leading-tight">عيادة الابتسامة لطب الأسنان</h1>
+                        <p class="text-xs sm:text-sm text-medical-600 font-medium flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span id="currentDateDisplay">نظام تنظيم المواعيد الذكي</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- أزرار التحكم العلوية -->
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <button 
+                        onclick="toggleCasesModal(true)" 
+                        class="py-2.5 px-3.5 sm:px-4 rounded-xl bg-medical-50 hover:bg-medical-100 text-medical-700 border border-medical-200 font-bold text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer"
+                        title="عرض دليل جميع حالات المرضى وأولوياتها"
+                    >
+                        <i class="ph-bold ph-list-checks text-lg"></i>
+                        <span class="hidden sm:inline">دليل حالات المرضى</span>
+                        <span class="sm:hidden">الحالات</span>
+                    </button>
+
+                    <button 
+                        onclick="lockSystem()" 
+                        class="py-2.5 px-3.5 sm:px-4 rounded-xl bg-white hover:bg-red-50 text-slate-700 hover:text-red-600 border border-slate-200 hover:border-red-200 font-bold text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer"
+                        title="قفل النظام وتسجيل الخروج"
+                    >
+                        <i class="ph-bold ph-lock-simple text-lg"></i>
+                        <span>قفل النظام</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- المحتوى الرئيسي -->
+        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+            
+            <!-- بطاقات الإحصائيات السريعة -->
+            <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white rounded-2xl p-5 border border-medical-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs sm:text-sm font-semibold text-slate-500 mb-1">إجمالي المراجعين</p>
+                        <h2 id="statTotal" class="text-2xl sm:text-3xl font-extrabold text-medical-900">0</h2>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-medical-50 text-medical-600 flex items-center justify-center">
+                        <i class="ph-fill ph-users-three text-2xl"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 border border-red-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs sm:text-sm font-semibold text-slate-500 mb-1">حالات طارئة وعاجلة</p>
+                        <h2 id="statUrgent" class="text-2xl sm:text-3xl font-extrabold text-red-600">0</h2>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center">
+                        <i class="ph-fill ph-siren text-2xl"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 border border-amber-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs sm:text-sm font-semibold text-slate-500 mb-1">في قاعة الانتظار</p>
+                        <h2 id="statWaiting" class="text-2xl sm:text-3xl font-extrabold text-amber-600">0</h2>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                        <i class="ph-fill ph-clock-countdown text-2xl"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 border border-emerald-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs sm:text-sm font-semibold text-slate-500 mb-1">تم العلاج (مكتمل)</p>
+                        <h2 id="statCompleted" class="text-2xl sm:text-3xl font-extrabold text-emerald-600">0</h2>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <i class="ph-fill ph-check-circle text-2xl"></i>
+                    </div>
+                </div>
+            </section>
+
+            <!-- الشبكة الرئيسية: نموذج الإضافة (يمين) + قائمة المواعيد المرتبة (يسار) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                <!-- القسم الأيمن: نموذج حجز موعد جديد -->
+                <section class="lg:col-span-4 bg-white rounded-3xl border border-medical-100 shadow-sm overflow-hidden">
+                    <div class="bg-gradient-to-l from-medical-600 to-medical-700 px-6 py-4 text-white flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <i class="ph-bold ph-calendar-plus text-2xl"></i>
+                            <h2 class="font-bold text-lg">تسجيل موعد مراجع جديد</h2>
+                        </div>
+                    </div>
+
+                    <form id="appointmentForm" class="p-6 space-y-4">
+                        <!-- اسم المريض -->
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1.5">اسم المريض الكامل <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <i class="ph ph-user absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                                <input 
+                                    type="text" 
+                                    id="patientName" 
+                                    required 
+                                    placeholder="مثال: أحمد محمد علي"
+                                    class="w-full pr-10 pl-4 py-2.5 rounded-xl border border-slate-200 focus:border-medical-600 focus:ring-2 focus:ring-medical-100 outline-none text-sm transition-all"
+                                >
+                            </div>
+                        </div>
+
+                        <!-- رقم الهاتف -->
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1.5">رقم الهاتف <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <i class="ph ph-phone absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                                <input 
+                                    type="tel" 
+                                    id="patientPhone" 
+                                    required 
+                                    placeholder="07XXXXXXXXX"
+                                    class="w-full pr-10 pl-4 py-2.5 rounded-xl border border-slate-200 focus:border-medical-600 focus:ring-2 focus:ring-medical-100 outline-none text-sm transition-all text-right"
+                                    dir="ltr"
+                                >
+                            </div>
+                        </div>
+
+                        <!-- حالة المريض (تحدد الأولوية تلقائياً) -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="block text-sm font-bold text-slate-700">حالة المريض ونوع العلاج <span class="text-red-500">*</span></label>
+                                <button type="button" onclick="toggleCasesModal(true)" class="text-xs font-bold text-medical-600 hover:underline">عرض الدليل</button>
+                            </div>
+                            <select 
+                                id="patientCondition" 
+                                required
+                                onchange="autoSetDuration()"
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-medical-50/40 focus:bg-white focus:border-medical-600 focus:ring-2 focus:ring-medical-100 outline-none text-sm font-semibold text-slate-800 transition-all cursor-pointer"
+                            >
+                                <!-- يتم تعبئة الخيارات تلقائياً عبر الجافاسكربت -->
+                            </select>
+                            <p id="conditionPriorityHint" class="text-xs text-medical-600 mt-1.5 font-medium flex items-center gap-1">
+                                <i class="ph-fill ph-info"></i>
+                                <span>الأولوية: قصوى (حالة طارئة)</span>
+                            </p>
+                        </div>
+
+                        <!-- التاريخ والوقت -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-1.5">تاريخ المراجعة <span class="text-red-500">*</span></label>
+                                <input 
+                                    type="date" 
+                                    id="appointmentDate" 
+                                    required
+                                    class="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-medical-600 focus:ring-2 focus:ring-medical-100 outline-none text-sm transition-all"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-1.5">وقت الموعد <span class="text-red-500">*</span></label>
+                                <input 
+                                    type="time" 
+                                    id="appointmentTime" 
+                                    required
+                                    class="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-medical-600 focus:ring-2 focus:ring-medical-100 outline-none text-sm transition-all"
+                                >
+                            </div>
+                        </div>
+
+                        <!-- المدة المتوقعة للمراجع -->
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1.5">المدة المتوقعة داخل العيادة</label>
+                            <select 
+                                id="appointmentDuration" 
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-medical-600 focus:ring-2 focus:ring-medical-100 outline-none text-sm transition-all cursor-pointer"
+                            >
+                                <option value="15">15 دقيقة (فحص سريع / استشارة)</option>
+                                <option value="20">20 دقيقة (تنظيف / متابعة)</option>
+                                <option value="30" selected>30 دقيقة (حشوة / خلع بسيط)</option>
+                                <option value="45">45 دقيقة (علاج عصب / تركيبات)</option>
+                                <option value="60">60 دقيقة (جراحة / زراعة أسنان)</option>
+                                <option value="90">90 دقيقة (جلسة علاجية شاملة)</option>
+                            </select>
+                        </div>
+
+                        <!-- ملاحظات -->
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1.5">ملاحظات طبية إضافية</label>
+                            <textarea 
+                                id="patientNotes" 
+                                rows="2" 
+                                placeholder="حساسية من البنج، أمراض مزمنة، رقم السن..."
+                                class="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-medical-600 focus:ring-2 focus:ring-medical-100 outline-none text-sm transition-all resize-none"
+                            ></textarea>
+                        </div>
+
+                        <button 
+                            type="submit" 
+                            class="w-full py-3 px-5 rounded-xl bg-medical-600 hover:bg-medical-700 active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-medical-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                            <i class="ph-bold ph-plus-circle text-lg"></i>
+                            <span>إضافة المراجع وترتيب الجدول</span>
+                        </button>
+                    </form>
+                </section>
+
+                <!-- القسم الأيسر: جدول المواعيد المرتب حسب الحالة والوقت -->
+                <section class="lg:col-span-8 space-y-4">
+                    
+                    <!-- شريط أدوات الفرز والتصفية -->
+                    <div class="bg-white rounded-2xl p-4 border border-medical-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <!-- أزرار طريقة الترتيب -->
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-xs font-bold text-slate-500 ml-1">ترتيب حسب:</span>
+                            <button 
+                                id="sortPriorityBtn" 
+                                onclick="setSortMode('priority')" 
+                                class="py-2 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer bg-medical-600 text-white shadow-sm"
+                            >
+                                <i class="ph-bold ph-sort-ascending text-base"></i>
+                                <span>أولوية الحالة ثم الوقت</span>
+                            </button>
+                            <button 
+                                id="sortTimeBtn" 
+                                onclick="setSortMode('time')" 
+                                class="py-2 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer bg-medical-50 text-medical-700 hover:bg-medical-100"
+                            >
+                                <i class="ph-bold ph-clock text-base"></i>
+                                <span>الوقت فقط</span>
+                            </button>
+                        </div>
+
+                        <!-- تصفية حسب الحالة -->
+                        <div class="flex items-center gap-2">
+                            <select 
+                                id="statusFilter" 
+                                onchange="renderAppointments()"
+                                class="py-2 px-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-slate-50 focus:border-medical-600 outline-none cursor-pointer"
+                            >
+                                <option value="all">جميع الحالات (الكل)</option>
+                                <option value="waiting">في الانتظار</option>
+                                <option value="in-progress">داخل العيادة الآن</option>
+                                <option value="completed">تم العلاج (مكتمل)</option>
+                            </select>
+
+                            <button 
+                                onclick="resetSampleData()" 
+                                class="py-2 px-3 rounded-xl border border-slate-200 hover:bg-medical-50 text-slate-600 hover:text-medical-700 text-xs font-bold transition-all cursor-pointer"
+                                title="استعادة بيانات تجريبية"
+                            >
+                                <i class="ph-bold ph-arrows-clockwise text-base"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- تنبيه توضيحي لنظام الأولوية -->
+                    <div class="bg-medical-50 border border-medical-200 rounded-2xl px-4 py-3 flex items-center justify-between gap-3 text-xs sm:text-sm text-medical-900">
+                        <div class="flex items-center gap-2.5">
+                            <i class="ph-fill ph-sparkle text-medical-600 text-xl shrink-0"></i>
+                            <p>يقوم النظام تلقائياً بتقديم <strong>الحالات الطارئة والأكثر إلحاحاً</strong> إلى أعلى القائمة مع عرض الوقت المخصص لكل مراجع.</p>
+                        </div>
+                    </div>
+
+                    <!-- حاوية قائمة المواعيد -->
+                    <div id="appointmentsList" class="space-y-3">
+                        <!-- يتم توليد بطاقات المراجعين هنا بواسطة JavaScript -->
+                    </div>
+
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== 3. نافذة دليل جميع حالات المرضى (Modal) ==================== -->
+    <div id="casesModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+        <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-medical-100 overflow-hidden flex flex-col max-h-[90vh]">
+            <!-- رأس النافذة -->
+            <div class="bg-gradient-to-l from-medical-700 to-medical-600 px-6 py-4 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <i class="ph-fill ph-first-aid-kit text-2xl"></i>
+                    <div>
+                        <h3 class="font-bold text-lg">دليل تصنيف جميع حالات مرضى الأسنان</h3>
+                        <p class="text-xs text-medical-100">مرتبة من الحالة الأكثر طوارئ (أولوية 1) إلى الفحص الدوري (أولوية 10)</p>
+                    </div>
+                </div>
+                <button onclick="toggleCasesModal(false)" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all cursor-pointer">
+                    <i class="ph-bold ph-x text-lg"></i>
+                </button>
+            </div>
+
+            <!-- محتوى الدليل -->
+            <div class="p-6 overflow-y-auto space-y-3" id="allCasesDirectory">
+                <!-- يتم تعبئتها تلقائياً من مصفوفة الحالات -->
+            </div>
+
+            <!-- تذييل النافذة -->
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button onclick="toggleCasesModal(false)" class="py-2.5 px-6 rounded-xl bg-medical-600 hover:bg-medical-700 text-white font-bold text-sm transition-all cursor-pointer">
+                    فهمت، إغلاق الدليل
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- إشعار منبثق (Toast Notification) -->
+    <div id="toast" class="fixed bottom-5 left-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-medical-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-sm font-bold">
+        <i id="toastIcon" class="ph-fill ph-check-circle text-medical-400 text-xl"></i>
+        <span id="toastMessage">تمت العملية بنجاح</span>
+    </div>
+
+    <script>
+        // ==================== إعدادات النظام والثوابت ====================
+        const SYSTEM_PASSCODE = "1990";
+        const STORAGE_KEY = "dental_clinic_appointments_v1";
+
+        // قائمة شاملة بجميع حالات مرضى الأسنان مرتبة حسب الأولوية الطبية
+        const DENTAL_CONDITIONS = [
+            {
+                id: "emergency",
+                name: "حالة طارئة / ألم شديد أو نزيف",
+                priority: 1,
+                urgencyLabel: "أولوية قصوى (طارئ جداً)",
+                defaultDuration: 30,
+                badgeClass: "bg-red-100 text-red-700 border-red-200",
+                dotClass: "bg-red-600",
+                description: "آلام حادة لا تحتمل، خراج سني منتفخ، كسر سن أمامي، أو نزيف مستمر يتطلب تدخلاً فورياً."
+            },
+            {
+                id: "extraction",
+                name: "خلع سن / جراحة فموية وضرس العقل",
+                priority: 2,
+                urgencyLabel: "أولوية عالية جداً",
+                defaultDuration: 45,
+                badgeClass: "bg-orange-100 text-orange-700 border-orange-200",
+                dotClass: "bg-orange-600",
+                description: "خلع الأسنان المتضررة بشدة أو الجراحات الصغرى لإزالة ضرس العقل المطمور."
+            },
+            {
+                id: "root_canal",
+                name: "علاج عصب / حشوة جذر",
+                priority: 3,
+                urgencyLabel: "أولوية عالية",
+                defaultDuration: 45,
+                badgeClass: "bg-amber-100 text-amber-800 border-amber-200",
+                dotClass: "bg-amber-600",
+                description: "تنظيف قنوات الجذور الملتهبة وسحب العصب لتخفيف الألم والحفاظ على السن الطبيعي."
+            },
+            {
+                id: "filling",
+                name: "حشوة تجميلية / علاج تسوس الأسنان",
+                priority: 4,
+                urgencyLabel: "أولوية متوسطة - عاجلة",
+                defaultDuration: 30,
+                badgeClass: "bg-sky-100 text-sky-800 border-sky-200",
+                dotClass: "bg-sky-600",
+                description: "إزالة التسوس السطحي أو المتوسط وترميم السن بحشوات ضوئية بلون السن."
+            },
+            {
+                id: "implant",
+                name: "زراعة أسنان (غرسات سنية)",
+                priority: 5,
+                urgencyLabel: "أولوية متوسطة",
+                defaultDuration: 60,
+                badgeClass: "bg-blue-100 text-blue-800 border-blue-200",
+                dotClass: "bg-blue-600",
+                description: "تعويض الأسنان المفقودة عبر زراعة جذور تيتانيوم وتركيب التيجان الدائمة."
+            },
+            {
+                id: "crowns",
+                name: "تركيبات وتيجان / جسور (زيركون وبورسلين)",
+                priority: 6,
+                urgencyLabel: "أولوية متوسطة",
+                defaultDuration: 45,
+                badgeClass: "bg-indigo-100 text-indigo-800 border-indigo-200",
+                dotClass: "bg-indigo-600",
+                description: "أخذ القياسات وتلبيس الأسنان الضعيفة أو المكسورة بالتيجان والجسور الثابتة أو المتحركة."
+            },
+            {
+                id: "orthodontics",
+                name: "تقويم أسنان (تركيب أو شد شهري)",
+                priority: 7,
+                urgencyLabel: "مراجعة مجدولة",
+                defaultDuration: 30,
+                badgeClass: "bg-cyan-100 text-cyan-800 border-cyan-200",
+                dotClass: "bg-cyan-600",
+                description: "تصحيح اصطفاف الأسنان وإطباق الفكين عبر التقويم المعدني أو الشفاف."
+            },
+            {
+                id: "gum_treatment",
+                name: "علاج التهاب اللثة وتنظيف الجير",
+                priority: 8,
+                urgencyLabel: "عناية وقائية",
+                defaultDuration: 30,
+                badgeClass: "bg-teal-100 text-teal-800 border-teal-200",
+                dotClass: "bg-teal-600",
+                description: "إزالة الترسبات الجيرية والتصبغات بالموجات فوق الصوتية ومعالجة نزيف اللثة."
+            },
+            {
+                id: "whitening",
+                name: "تبييض أسنان وتجميل الابتسامة",
+                priority: 9,
+                urgencyLabel: "إجراء تجميلي",
+                defaultDuration: 45,
+                badgeClass: "bg-purple-100 text-purple-800 border-purple-200",
+                dotClass: "bg-purple-600",
+                description: "جلسات تبييض الأسنان بالليزر أو القوالب للحصول على ابتسامة أكثر إشراقاً."
+            },
+            {
+                id: "checkup",
+                name: "فحص دوري واستشارة طبية",
+                priority: 10,
+                urgencyLabel: "أولوية اعتيادية",
+                defaultDuration: 15,
+                badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+                dotClass: "bg-slate-500",
+                description: "فحص شامل للأسنان واللثة، تصوير أشعة تشخيصية، ووضع خطة علاجية للمراجع."
+            }
+        ];
+
+        // حالة التطبيق
+        let appointments = [];
+        let sortMode = "priority"; // 'priority' أو 'time'
+
+        // ==================== 1. منطق شاشة القفل (1990) ====================
+        const lockScreen = document.getElementById("lockScreen");
+        const mainApp = document.getElementById("mainApp");
+        const loginForm = document.getElementById("loginForm");
+        const passcodeInput = document.getElementById("passcodeInput");
+        const loginError = document.getElementById("loginError");
+
+        loginForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+            const enteredCode = passcodeInput.value.trim();
+            if (enteredCode === SYSTEM_PASSCODE) {
+                loginError.classList.add("hidden");
+                loginError.classList.remove("flex");
+                lockScreen.classList.add("opacity-0", "pointer-events-none");
+                setTimeout(() => {
+                    lockScreen.classList.add("hidden");
+                    mainApp.classList.remove("hidden");
+                    passcodeInput.value = "";
+                }, 250);
+                showToast("مرحباً بك في نظام إدارة العيادة");
+            } else {
+                loginError.classList.remove("hidden");
+                loginError.classList.add("flex");
+                passcodeInput.classList.add("animate-shake", "border-red-500");
+                setTimeout(() => {
+                    passcodeInput.classList.remove("animate-shake", "border-red-500");
+                }, 400);
+                passcodeInput.focus();
+                passcodeInput.select();
+            }
+        });
+
+        function lockSystem() {
+            mainApp.classList.add("hidden");
+            lockScreen.classList.remove("hidden", "opacity-0", "pointer-events-none");
+            passcodeInput.value = "";
+            passcodeInput.focus();
+        }
+
+        // ==================== 2. تهيئة البيانات والنموذج ====================
+        function initApp() {
+            // عرض تاريخ اليوم في الشريط العلوي
+            const today = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById("currentDateDisplay").textContent = today.toLocaleDateString('ar-IQ', options);
+
+            // تعيين التاريخ الافتراضي في النموذج لليوم
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            document.getElementById("appointmentDate").value = `${yyyy}-${mm}-${dd}`;
+            document.getElementById("appointmentTime").value = "10:00";
+
+            // تعبئة قائمة الحالات في النموذج وفي دليل الحالات
+            populateConditionsUI();
+
+            // تحميل المواعيد المحفوظة أو إنشاء بيانات تجريبية
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    appointments = JSON.parse(saved);
+                } catch (err) {
+                    appointments = getSampleAppointments();
+                }
+            } else {
+                appointments = getSampleAppointments();
+                saveAppointments();
+            }
+
+            renderAppointments();
+        }
+
+        function populateConditionsUI() {
+            const select = document.getElementById("patientCondition");
+            const directory = document.getElementById("allCasesDirectory");
+
+            select.innerHTML = "";
+            directory.innerHTML = "";
+
+            DENTAL_CONDITIONS.forEach(cond => {
+                // إضافة خيار إلى القائمة المنسدلة
+                const option = document.createElement("option");
+                option.value = cond.id;
+                option.textContent = `[أولوية ${cond.priority}] ${cond.name}`;
+                select.appendChild(option);
+
+                // إضافة بطاقة إلى دليل الحالات الشامل
+                const card = document.createElement("div");
+                card.className = "p-4 rounded-2xl border border-slate-200 hover:border-medical-300 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all";
+                card.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="px-2.5 py-0.5 rounded-lg text-xs font-extrabold border ${cond.badgeClass}">
+                                أولوية #${cond.priority} • ${cond.urgencyLabel}
+                            </span>
+                            <h4 class="font-bold text-slate-900 text-sm sm:text-base">${cond.name}</h4>
+                        </div>
+                        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">${cond.description}</p>
+                    </div>
+                    <div class="shrink-0 bg-white px-3.5 py-2 rounded-xl border border-medical-100 text-center">
+                        <span class="block text-[11px] text-slate-400 font-bold">المدة المقترحة</span>
+                        <span class="text-sm font-extrabold text-medical-700">${cond.defaultDuration} دقيقة</span>
+                    </div>
+                `;
+                directory.appendChild(card);
+            });
+        }
+
+        // تحديث المدة المقترحة وتلميح الأولوية عند اختيار حالة المريض
+        function autoSetDuration() {
+            const condId = document.getElementById("patientCondition").value;
+            const cond = DENTAL_CONDITIONS.find(c => c.id === condId);
+            if (cond) {
+                document.getElementById("appointmentDuration").value = cond.defaultDuration;
+                document.getElementById("conditionPriorityHint").innerHTML = `
+                    <i class="ph-fill ph-info"></i>
+                    <span>مستوى الأولوية: <strong>${cond.urgencyLabel}</strong> (ترتيب #${cond.priority})</span>
+                `;
+            }
+        }
+
+        function getSampleAppointments() {
+            const todayStr = document.getElementById("appointmentDate").value;
+            return [
+                {
+                    id: "apt-1",
+                    name: "علي حسين كاظم",
+                    phone: "07701234567",
+                    conditionId: "checkup",
+                    date: todayStr,
+                    time: "09:30",
+                    duration: 15,
+                    notes: "فحص دوري سنوي",
+                    status: "waiting"
+                },
+                {
+                    id: "apt-2",
+                    name: "زهراء محمد جاسم",
+                    phone: "07819876543",
+                    conditionId: "emergency",
+                    date: todayStr,
+                    time: "10:15",
+                    duration: 30,
+                    notes: "ألم شديد جداً في الضرس السفلي الأيمن مع تورم بسيط",
+                    status: "waiting"
+                },
+                {
+                    id: "apt-3",
+                    name: "مصطفى طارق محمود",
+                    phone: "07505554433",
+                    conditionId: "root_canal",
+                    date: todayStr,
+                    time: "10:00",
+                    duration: 45,
+                    notes: "الجلسة الثانية لإكمال حشوة الجذر",
+                    status: "in-progress"
+                },
+                {
+                    id: "apt-4",
+                    name: "نور الهدى عبد الله",
+                    phone: "07712223344",
+                    conditionId: "orthodontics",
+                    date: todayStr,
+                    time: "11:00",
+                    duration: 30,
+                    notes: "شد التقويم الشهري وتغيير المطاط",
+                    status: "waiting"
+                }
+            ];
+        }
+
+        function saveAppointments() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(appointments));
+        }
+
+        // ==================== 3. إضافة وحذف وتحديث المواعيد ====================
+        document.getElementById("appointmentForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const newApt = {
+                id: "apt-" + Date.now(),
+                name: document.getElementById("patientName").value.trim(),
+                phone: document.getElementById("patientPhone").value.trim(),
+                conditionId: document.getElementById("patientCondition").value,
+                date: document.getElementById("appointmentDate").value,
+                time: document.getElementById("appointmentTime").value,
+                duration: parseInt(document.getElementById("appointmentDuration").value, 10),
+                notes: document.getElementById("patientNotes").value.trim(),
+                status: "waiting"
+            };
+
+            appointments.push(newApt);
+            saveAppointments();
+            renderAppointments();
+
+            // إعادة ضبط حقول الاسم والهاتف والملاحظات فقط لتسهيل الإدخال المتتالي
+            document.getElementById("patientName").value = "";
+            document.getElementById("patientPhone").value = "";
+            document.getElementById("patientNotes").value = "";
+
+            showToast("تمت إضافة المراجع وترتيب الجدول حسب الأولوية");
+        });
+
+        function updateStatus(id, newStatus) {
+            const idx = appointments.findIndex(a => a.id === id);
+            if (idx !== -1) {
+                appointments[idx].status = newStatus;
+                saveAppointments();
+                renderAppointments();
+                const statusLabels = {
+                    "waiting": "قائمة الانتظار",
+                    "in-progress": "داخل العيادة الآن",
+                    "completed": "تم العلاج بنجاح"
+                };
+                showToast(`تم تحديث حالة المراجع إلى: ${statusLabels[newStatus]}`);
+            }
+        }
+
+        function deleteAppointment(id) {
+            appointments = appointments.filter(a => a.id !== id);
+            saveAppointments();
+            renderAppointments();
+            showToast("تم حذف الموعد من الجدول");
+        }
+
+        function resetSampleData() {
+            appointments = getSampleAppointments();
+            saveAppointments();
+            renderAppointments();
+            showToast("تمت استعادة المواعيد التجريبية");
+        }
+
+        // ==================== 4. الفرز الذكي وعرض القائمة ====================
+        function setSortMode(mode) {
+            sortMode = mode;
+            const pBtn = document.getElementById("sortPriorityBtn");
+            const tBtn = document.getElementById("sortTimeBtn");
+
+            if (mode === "priority") {
+                pBtn.className = "py-2 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer bg-medical-600 text-white shadow-sm";
+                tBtn.className = "py-2 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer bg-medical-50 text-medical-700 hover:bg-medical-100";
+            } else {
+                tBtn.className = "py-2 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer bg-medical-600 text-white shadow-sm";
+                pBtn.className = "py-2 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer bg-medical-50 text-medical-700 hover:bg-medical-100";
+            }
+            renderAppointments();
+        }
+
+        // حساب وقت انتهاء الجلسة بناءً على وقت البداية والمدة
+        function calculateEndTime(startTime, durationMinutes) {
+            const [hours, mins] = startTime.split(":").map(Number);
+            const totalMinutes = hours * 60 + mins + durationMinutes;
+            const endHours = Math.floor(totalMinutes / 60) % 24;
+            const endMins = totalMinutes % 60;
+            return `${String(endHours).padStart(2, '0')}:${String(endMins).padStart(2, '0')}`;
+        }
+
+        function renderAppointments() {
+            const container = document.getElementById("appointmentsList");
+            const filterVal = document.getElementById("statusFilter").value;
+
+            // تحديث الإحصائيات
+            document.getElementById("statTotal").textContent = appointments.length;
+            document.getElementById("statUrgent").textContent = appointments.filter(a => {
+                const c = DENTAL_CONDITIONS.find(item => item.id === a.conditionId);
+                return c && c.priority <= 2 && a.status !== "completed";
+            }).length;
+            document.getElementById("statWaiting").textContent = appointments.filter(a => a.status === "waiting").length;
+            document.getElementById("statCompleted").textContent = appointments.filter(a => a.status === "completed").length;
+
+            // تصفية القائمة
+            let filtered = appointments.filter(a => filterVal === "all" || a.status === filterVal);
+
+            // فرز القائمة
+            filtered.sort((a, b) => {
+                // وضع المكتمل في الأسفل دائماً
+                if (a.status === "completed" && b.status !== "completed") return 1;
+                if (a.status !== "completed" && b.status === "completed") return -1;
+
+                const condA = DENTAL_CONDITIONS.find(c => c.id === a.conditionId) || { priority: 99 };
+                const condB = DENTAL_CONDITIONS.find(c => c.id === b.conditionId) || { priority: 99 };
+
+                if (sortMode === "priority") {
+                    // أولاً حسب أولوية الحالة الطبية (1 هو الأعلى)
+                    if (condA.priority !== condB.priority) {
+                        return condA.priority - condB.priority;
+                    }
+                    // ثانياً حسب التاريخ ثم الوقت
+                    return `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`);
+                } else {
+                    // الفرز حسب التاريخ والوقت فقط
+                    return `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`);
+                }
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-3xl p-10 text-center border border-medical-100">
+                        <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-medical-50 text-medical-500 flex items-center justify-center">
+                            <i class="ph ph-calendar-blank text-3xl"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-base mb-1">لا توجد مواعيد مطابقة للعرض حالياً</h3>
+                        <p class="text-xs text-slate-500">يمكنك إضافة مراجع جديد من النموذج الجانبي أو تغيير خيارات التصفية.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map((apt, index) => {
+                const cond = DENTAL_CONDITIONS.find(c => c.id === apt.conditionId) || DENTAL_CONDITIONS[9];
+                const endTime = calculateEndTime(apt.time, apt.duration);
+                const isCompleted = apt.status === "completed";
+                const isInProgress = apt.status === "in-progress";
+
+                return `
+                    <div class="bg-white rounded-2xl p-4 sm:p-5 border transition-all ${
+                        isInProgress 
+                            ? 'border-medical-500 ring-2 ring-medical-100 shadow-md' 
+                            : isCompleted 
+                                ? 'border-slate-200 opacity-70 bg-slate-50/70' 
+                                : cond.priority === 1 
+                                    ? 'border-red-200 shadow-sm hover:border-red-300' 
+                                    : 'border-medical-100 shadow-sm hover:border-medical-300'
+                    }">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            
+                            <!-- معلومات المراجع والحالة -->
+                            <div class="flex items-start gap-3.5">
+                                <!-- رقم الدور / الأولوية -->
+                                <div class="w-11 h-11 rounded-2xl shrink-0 flex flex-col items-center justify-center font-extrabold border ${
+                                    isInProgress ? 'bg-medical-600 text-white border-medical-600' : 'bg-medical-50 text-medical-800 border-medical-200'
+                                }">
+                                    <span class="text-[10px] leading-none opacity-80">دور</span>
+                                    <span class="text-base leading-tight">#${index + 1}</span>
+                                </div>
+
+                                <div class="space-y-1.5">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <h3 class="font-extrabold text-slate-900 text-base sm:text-lg ${isCompleted ? 'line-through text-slate-500' : ''}">${apt.name}</h3>
+                                        
+                                        <!-- شارة حالة المريض وأولويتها -->
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-bold border ${cond.badgeClass}">
+                                            <span class="w-1.5 h-1.5 rounded-full ${cond.dotClass}"></span>
+                                            ${cond.name} (أولوية ${cond.priority})
+                                        </span>
+
+                                        ${isInProgress ? `
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                                <i class="ph-fill ph-stethoscope"></i> داخل العيادة الآن
+                                            </span>
+                                        ` : ''}
+                                    </div>
+
+                                    <!-- تفاصيل الوقت والمدة والهاتف -->
+                                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-slate-600 font-medium">
+                                        <span class="inline-flex items-center gap-1 text-medical-700 font-bold bg-medical-50 px-2.5 py-0.5 rounded-lg">
+                                            <i class="ph-bold ph-clock"></i>
+                                            ${apt.time} - ${endTime} (${apt.duration} دقيقة)
+                                        </span>
+                                        <span class="inline-flex items-center gap-1">
+                                            <i class="ph ph-calendar-blank text-slate-400"></i>
+                                            ${apt.date}
+                                        </span>
+                                        <span class="inline-flex items-center gap-1" dir="ltr">
+                                            ${apt.phone}
+                                            <i class="ph ph-phone text-slate-400"></i>
+                                        </span>
+                                    </div>
+
+                                    ${apt.notes ? `
+                                        <p class="text-xs text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 inline-block">
+                                            <i class="ph-bold ph-note text-medical-600 ml-1"></i> ${apt.notes}
+                                        </p>
+                                    ` : ''}
+                                </div>
+                            </div>
+
+                            <!-- أزرار الإجراءات السريعة -->
+                            <div class="flex flex-wrap items-center gap-2 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 shrink-0">
+                                ${apt.status !== "in-progress" && !isCompleted ? `
+                                    <button 
+                                        onclick="updateStatus('${apt.id}', 'in-progress')" 
+                                        class="py-2 px-3 rounded-xl bg-medical-600 hover:bg-medical-700 text-white text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shadow-xs"
+                                        title="إدخال المريض إلى غرفة الطبيب"
+                                    >
+                                        <i class="ph-bold ph-door-open"></i>
+                                        <span>إدخال للطبيب</span>
+                                    </button>
+                                ` : ''}
+
+                                ${!isCompleted ? `
+                                    <button 
+                                        onclick="updateStatus('${apt.id}', 'completed')" 
+                                        class="py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                                        title="تحديد الموعد كمكتمل"
+                                    >
+                                        <i class="ph-bold ph-check"></i>
+                                        <span>تم العلاج</span>
+                                    </button>
+                                ` : `
+                                    <button 
+                                        onclick="updateStatus('${apt.id}', 'waiting')" 
+                                        class="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                                    >
+                                        <i class="ph-bold ph-arrow-u-up-right"></i>
+                                        <span>إعادة للانتظار</span>
+                                    </button>
+                                `}
+
+                                <button 
+                                    onclick="deleteAppointment('${apt.id}')" 
+                                    class="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all cursor-pointer"
+                                    title="حذف الموعد"
+                                >
+                                    <i class="ph-bold ph-trash text-base"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        // ==================== 5. النوافذ المنبثقة والإشعارات ====================
+        function toggleCasesModal(show) {
+            const modal = document.getElementById("casesModal");
+            if (show) {
+                modal.classList.remove("hidden");
+                modal.classList.add("flex");
+            } else {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+            }
+        }
+
+        let toastTimer;
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            document.getElementById("toastMessage").textContent = msg;
+            toast.classList.remove("translate-y-20", "opacity-0");
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.add("translate-y-20", "opacity-0");
+            }, 3000);
+        }
+
+        // تشغيل التهيئة عند تحميل الصفحة
+        window.addEventListener("DOMContentLoaded", () => {
+            initApp();
+            passcodeInput.focus();
+        });
+    </script>
+</body>
+</html>
