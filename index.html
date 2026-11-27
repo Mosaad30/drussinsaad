@@ -4,13 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام إدارة وتنظيم مواعيد عيادة طب الأسنان</title>
-    <!-- استدعاء خط Cairo من Google Fonts لدعم اللغة العربية بشكل أنيق -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- استدعاء مكتبة Tailwind CSS للتصميم -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- استدعاء أيقونات Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script>
         tailwind.config = {
@@ -41,7 +38,6 @@
             background-color: #F8FAFC;
             color: #0F172A;
         }
-        /* تأثير اهتزاز عند إدخال رمز خاطئ */
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-8px); }
@@ -51,7 +47,6 @@
         .animate-shake {
             animation: shake 0.35s ease-in-out;
         }
-        /* شريط تمرير مخصص باللون الأزرق الطبي */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -73,10 +68,8 @@
     <!-- ==================== 1. شاشة الحماية برمز الدخول (1990) ==================== -->
     <div id="lockScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-medical-900 via-medical-800 to-medical-600 p-4 transition-opacity duration-300">
         <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8 text-center border border-medical-100 relative overflow-hidden">
-            <!-- شريط علوي زخرفي -->
             <div class="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-medical-500 to-medical-700"></div>
             
-            <!-- أيقونة العيادة -->
             <div class="w-20 h-20 mx-auto mb-5 rounded-2xl bg-medical-50 border border-medical-200 flex items-center justify-center text-medical-600 shadow-sm">
                 <i class="ph-fill ph-tooth text-5xl"></i>
             </div>
@@ -100,7 +93,6 @@
                     >
                 </div>
 
-                <!-- رسالة الخطأ -->
                 <div id="loginError" class="hidden items-center justify-center gap-2 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 py-2.5 px-3 rounded-xl">
                     <i class="ph-fill ph-warning-circle text-lg"></i>
                     <span>الرمز السري غير صحيح! يرجى المحاولة مرة أخرى.</span>
@@ -125,25 +117,34 @@
     <!-- ==================== 2. الواجهة الرئيسية للتطبيق ==================== -->
     <div id="mainApp" class="hidden flex-1 flex flex-col">
         
-        <!-- الشريط العلوي (Header) -->
         <header class="bg-white border-b border-medical-100 sticky top-0 z-30 shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
-                <!-- الشعار والعنوان -->
                 <div class="flex items-center gap-3">
                     <div class="w-12 h-12 rounded-2xl bg-medical-600 text-white flex items-center justify-center shadow-md shadow-medical-600/20">
                         <i class="ph-fill ph-tooth text-3xl"></i>
                     </div>
                     <div>
                         <h1 class="text-lg sm:text-xl font-extrabold text-slate-900 leading-tight">عيادة الابتسامة لطب الأسنان</h1>
-                        <p class="text-xs sm:text-sm text-medical-600 font-medium flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span id="currentDateDisplay">نظام تنظيم المواعيد الذكي</span>
-                        </p>
+                        <div class="flex flex-wrap items-center gap-2 text-xs sm:text-sm font-medium">
+                            <span id="currentDateDisplay" class="text-medical-600">نظام تنظيم المواعيد الذكي</span>
+                            <span id="syncStatusBadge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                <span id="syncDot" class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                <span id="syncStatusText">وضع محلي (بانتظار ربط السحابة)</span>
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- أزرار التحكم العلوية -->
                 <div class="flex items-center gap-2 sm:gap-3">
+                    <button 
+                        onclick="toggleCloudModal(true)" 
+                        class="py-2.5 px-3.5 sm:px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer"
+                        title="ربط المزامنة السحابية لجميع الأجهزة"
+                    >
+                        <i class="ph-bold ph-cloud-check text-lg"></i>
+                        <span class="hidden md:inline">مزامنة الأجهزة</span>
+                    </button>
+
                     <button 
                         onclick="toggleCasesModal(true)" 
                         class="py-2.5 px-3.5 sm:px-4 rounded-xl bg-medical-50 hover:bg-medical-100 text-medical-700 border border-medical-200 font-bold text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer"
@@ -166,10 +167,8 @@
             </div>
         </header>
 
-        <!-- المحتوى الرئيسي -->
         <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
             
-            <!-- بطاقات الإحصائيات السريعة -->
             <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white rounded-2xl p-5 border border-medical-100 shadow-sm flex items-center justify-between">
                     <div>
@@ -212,10 +211,8 @@
                 </div>
             </section>
 
-            <!-- الشبكة الرئيسية: نموذج الإضافة (يمين) + قائمة المواعيد المرتبة (يسار) -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 
-                <!-- القسم الأيمن: نموذج حجز موعد جديد -->
                 <section class="lg:col-span-4 bg-white rounded-3xl border border-medical-100 shadow-sm overflow-hidden">
                     <div class="bg-gradient-to-l from-medical-600 to-medical-700 px-6 py-4 text-white flex items-center justify-between">
                         <div class="flex items-center gap-2.5">
@@ -225,7 +222,6 @@
                     </div>
 
                     <form id="appointmentForm" class="p-6 space-y-4">
-                        <!-- اسم المريض -->
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-1.5">اسم المريض الكامل <span class="text-red-500">*</span></label>
                             <div class="relative">
@@ -240,7 +236,6 @@
                             </div>
                         </div>
 
-                        <!-- رقم الهاتف -->
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-1.5">رقم الهاتف <span class="text-red-500">*</span></label>
                             <div class="relative">
@@ -256,7 +251,6 @@
                             </div>
                         </div>
 
-                        <!-- حالة المريض (تحدد الأولوية تلقائياً) -->
                         <div>
                             <div class="flex items-center justify-between mb-1.5">
                                 <label class="block text-sm font-bold text-slate-700">حالة المريض ونوع العلاج <span class="text-red-500">*</span></label>
@@ -267,16 +261,13 @@
                                 required
                                 onchange="autoSetDuration()"
                                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-medical-50/40 focus:bg-white focus:border-medical-600 focus:ring-2 focus:ring-medical-100 outline-none text-sm font-semibold text-slate-800 transition-all cursor-pointer"
-                            >
-                                <!-- يتم تعبئة الخيارات تلقائياً عبر الجافاسكربت -->
-                            </select>
+                            ></select>
                             <p id="conditionPriorityHint" class="text-xs text-medical-600 mt-1.5 font-medium flex items-center gap-1">
                                 <i class="ph-fill ph-info"></i>
                                 <span>الأولوية: قصوى (حالة طارئة)</span>
                             </p>
                         </div>
 
-                        <!-- التاريخ والوقت -->
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-sm font-bold text-slate-700 mb-1.5">تاريخ المراجعة <span class="text-red-500">*</span></label>
@@ -298,7 +289,6 @@
                             </div>
                         </div>
 
-                        <!-- المدة المتوقعة للمراجع -->
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-1.5">المدة المتوقعة داخل العيادة</label>
                             <select 
@@ -314,7 +304,6 @@
                             </select>
                         </div>
 
-                        <!-- ملاحظات -->
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-1.5">ملاحظات طبية إضافية</label>
                             <textarea 
@@ -330,17 +319,14 @@
                             class="w-full py-3 px-5 rounded-xl bg-medical-600 hover:bg-medical-700 active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-medical-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
                         >
                             <i class="ph-bold ph-plus-circle text-lg"></i>
-                            <span>إضافة المراجع وترتيب الجدول</span>
+                            <span>إضافة المراجع وحفظه تلقائياً</span>
                         </button>
                     </form>
                 </section>
 
-                <!-- القسم الأيسر: جدول المواعيد المرتب حسب الحالة والوقت -->
                 <section class="lg:col-span-8 space-y-4">
                     
-                    <!-- شريط أدوات الفرز والتصفية -->
                     <div class="bg-white rounded-2xl p-4 border border-medical-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <!-- أزرار طريقة الترتيب -->
                         <div class="flex flex-wrap items-center gap-2">
                             <span class="text-xs font-bold text-slate-500 ml-1">ترتيب حسب:</span>
                             <button 
@@ -361,7 +347,6 @@
                             </button>
                         </div>
 
-                        <!-- تصفية حسب الحالة -->
                         <div class="flex items-center gap-2">
                             <select 
                                 id="statusFilter" 
@@ -384,28 +369,104 @@
                         </div>
                     </div>
 
-                    <!-- تنبيه توضيحي لنظام الأولوية -->
                     <div class="bg-medical-50 border border-medical-200 rounded-2xl px-4 py-3 flex items-center justify-between gap-3 text-xs sm:text-sm text-medical-900">
                         <div class="flex items-center gap-2.5">
-                            <i class="ph-fill ph-sparkle text-medical-600 text-xl shrink-0"></i>
-                            <p>يقوم النظام تلقائياً بتقديم <strong>الحالات الطارئة والأكثر إلحاحاً</strong> إلى أعلى القائمة مع عرض الوقت المخصص لكل مراجع.</p>
+                            <i class="ph-fill ph-cloud-arrow-up text-medical-600 text-xl shrink-0"></i>
+                            <p>يتم <strong>الحفظ التلقائي</strong> فوراً عند أي تعديل، وعند ربط قاعدة البيانات السحابية ستظهر جميع المواعيد على كل جهاز يستخدم الموقع.</p>
                         </div>
                     </div>
 
-                    <!-- حاوية قائمة المواعيد -->
-                    <div id="appointmentsList" class="space-y-3">
-                        <!-- يتم توليد بطاقات المراجعين هنا بواسطة JavaScript -->
-                    </div>
+                    <div id="appointmentsList" class="space-y-3"></div>
 
                 </section>
             </div>
         </main>
     </div>
 
-    <!-- ==================== 3. نافذة دليل جميع حالات المرضى (Modal) ==================== -->
+    <!-- ==================== 3. نافذة إعداد المزامنة السحابية لجميع الأجهزة ==================== -->
+    <div id="cloudModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+        <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-medical-100 overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-gradient-to-l from-emerald-700 to-emerald-600 px-6 py-4 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <i class="ph-fill ph-cloud-check text-2xl"></i>
+                    <div>
+                        <h3 class="font-bold text-lg">إعداد الحفظ التلقائي ومزامنة كل الأجهزة</h3>
+                        <p class="text-xs text-emerald-100">ربط قاعدة بيانات Firebase Realtime Database لمشاركة المواعيد</p>
+                    </div>
+                </div>
+                <button onclick="toggleCloudModal(false)" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all cursor-pointer">
+                    <i class="ph-bold ph-x text-lg"></i>
+                </button>
+            </div>
+
+            <form id="cloudConfigForm" class="p-6 overflow-y-auto space-y-4 text-sm">
+                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 text-xs text-emerald-900 space-y-1.5 leading-relaxed">
+                    <p class="font-bold">خطوات تفعيل المزامنة على كل الأجهزة:</p>
+                    <p>1. أنشئ مشروعاً مجانياً في <strong>Firebase Console</strong> ثم فعّل <strong>Realtime Database</strong>.</p>
+                    <p>2. انسخ رابط قاعدة البيانات (مثل: <code>https://your-project-default-rtdb.firebaseio.com</code>) ورمز <strong>API Key</strong>.</p>
+                    <p>3. استخدم نفس <strong>معرّف العيادة</strong> في كل جهاز ليظهر نفس الجدول تلقائياً.</p>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">رابط قاعدة البيانات (Database URL) <span class="text-red-500">*</span></label>
+                    <input 
+                        type="url" 
+                        id="cloudDbUrl" 
+                        required
+                        dir="ltr"
+                        placeholder="https://your-clinic-default-rtdb.firebaseio.com"
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-600 outline-none text-left"
+                    >
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Web API Key (اختياري إذا كانت القواعد مفتوحة)</label>
+                    <input 
+                        type="text" 
+                        id="cloudApiKey" 
+                        dir="ltr"
+                        placeholder="AIzaSy..."
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-600 outline-none text-left"
+                    >
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">معرّف العيادة المشترك (Clinic Room ID)</label>
+                    <input 
+                        type="text" 
+                        id="cloudRoomId" 
+                        required
+                        dir="ltr"
+                        value="smile_dental_clinic_main"
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-600 outline-none text-left"
+                    >
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-2">
+                    <button 
+                        type="button" 
+                        onclick="clearCloudConfig()" 
+                        class="py-2.5 px-4 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs cursor-pointer"
+                    >
+                        فصل المزامنة السحابية
+                    </button>
+
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="toggleCloudModal(false)" class="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer">
+                            إلغاء
+                        </button>
+                        <button type="submit" class="py-2.5 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs cursor-pointer">
+                            حفظ وتفعيل المزامنة
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== 4. نافذة دليل جميع حالات المرضى (Modal) ==================== -->
     <div id="casesModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
         <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-medical-100 overflow-hidden flex flex-col max-h-[90vh]">
-            <!-- رأس النافذة -->
             <div class="bg-gradient-to-l from-medical-700 to-medical-600 px-6 py-4 text-white flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
                     <i class="ph-fill ph-first-aid-kit text-2xl"></i>
@@ -419,12 +480,8 @@
                 </button>
             </div>
 
-            <!-- محتوى الدليل -->
-            <div class="p-6 overflow-y-auto space-y-3" id="allCasesDirectory">
-                <!-- يتم تعبئتها تلقائياً من مصفوفة الحالات -->
-            </div>
+            <div class="p-6 overflow-y-auto space-y-3" id="allCasesDirectory"></div>
 
-            <!-- تذييل النافذة -->
             <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
                 <button onclick="toggleCasesModal(false)" class="py-2.5 px-6 rounded-xl bg-medical-600 hover:bg-medical-700 text-white font-bold text-sm transition-all cursor-pointer">
                     فهمت، إغلاق الدليل
@@ -433,18 +490,23 @@
         </div>
     </div>
 
-    <!-- إشعار منبثق (Toast Notification) -->
     <div id="toast" class="fixed bottom-5 left-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-medical-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-sm font-bold">
         <i id="toastIcon" class="ph-fill ph-check-circle text-medical-400 text-xl"></i>
         <span id="toastMessage">تمت العملية بنجاح</span>
     </div>
 
     <script>
-        // ==================== إعدادات النظام والثوابت ====================
         const SYSTEM_PASSCODE = "1990";
         const STORAGE_KEY = "dental_clinic_appointments_v1";
+        const CLOUD_CONFIG_KEY = "dental_clinic_cloud_config_v1";
 
-        // قائمة شاملة بجميع حالات مرضى الأسنان مرتبة حسب الأولوية الطبية
+        // يمكنك وضع إعدادات Firebase مباشرة هنا لتعمل على كل الأجهزة تلقائياً دون إعداد يدوي في كل جهاز
+        const DEFAULT_CLOUD_CONFIG = {
+            dbUrl: "",     // مثال: "https://your-project-default-rtdb.firebaseio.com"
+            apiKey: "",    // اختياري
+            roomId: "smile_dental_clinic_main"
+        };
+
         const DENTAL_CONDITIONS = [
             {
                 id: "emergency",
@@ -548,11 +610,13 @@
             }
         ];
 
-        // حالة التطبيق
         let appointments = [];
-        let sortMode = "priority"; // 'priority' أو 'time'
+        let sortMode = "priority";
+        let cloudConfig = { ...DEFAULT_CLOUD_CONFIG };
+        let pollTimer = null;
+        let lastCloudSerialized = "";
 
-        // ==================== 1. منطق شاشة القفل (1990) ====================
+        // ==================== 1. شاشة القفل (1990) ====================
         const lockScreen = document.getElementById("lockScreen");
         const mainApp = document.getElementById("mainApp");
         const loginForm = document.getElementById("loginForm");
@@ -591,37 +655,170 @@
             passcodeInput.focus();
         }
 
-        // ==================== 2. تهيئة البيانات والنموذج ====================
+        // ==================== 2. إعدادات السحابة والمزامنة ====================
+        function loadCloudConfig() {
+            const savedCfg = localStorage.getItem(CLOUD_CONFIG_KEY);
+            if (savedCfg) {
+                try {
+                    cloudConfig = { ...DEFAULT_CLOUD_CONFIG, ...JSON.parse(savedCfg) };
+                } catch (_) {
+                    cloudConfig = { ...DEFAULT_CLOUD_CONFIG };
+                }
+            }
+        }
+
+        function getCloudEndpoint() {
+            if (!cloudConfig.dbUrl) return null;
+            const cleanUrl = cloudConfig.dbUrl.trim().replace(/\/+$/, "");
+            const room = (cloudConfig.roomId || "smile_dental_clinic_main").trim().replace(/[^a-zA-Z0-9_-]/g, "_");
+            const authQuery = cloudConfig.apiKey ? `?auth=${encodeURIComponent(cloudConfig.apiKey.trim())}` : "";
+            return `${cleanUrl}/clinics/${room}/appointments.json${authQuery}`;
+        }
+
+        function updateSyncBadge(state, customText) {
+            const badge = document.getElementById("syncStatusBadge");
+            const dot = document.getElementById("syncDot");
+            const text = document.getElementById("syncStatusText");
+
+            if (state === "synced") {
+                badge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200";
+                dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+                text.textContent = customText || "متصل ومزامن مع كل الأجهزة";
+            } else if (state === "error") {
+                badge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200";
+                dot.className = "w-2 h-2 rounded-full bg-red-500";
+                text.textContent = customText || "خطأ في الاتصال بالسحابة";
+            } else {
+                badge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200";
+                dot.className = "w-2 h-2 rounded-full bg-amber-500";
+                text.textContent = customText || "وضع محلي (بانتظار ربط السحابة)";
+            }
+        }
+
+        async function pushAppointmentsToCloud(list) {
+            const endpoint = getCloudEndpoint();
+            if (!endpoint) return;
+
+            const payload = {
+                updatedAt: new Date().toISOString(),
+                items: list
+            };
+            const serialized = JSON.stringify(list);
+            lastCloudSerialized = serialized;
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error("Cloud write failed");
+                updateSyncBadge("synced", "تم الحفظ ومزامنة كل الأجهزة");
+            } catch (_) {
+                updateSyncBadge("error", "تعذر الحفظ السحابي (محفوظ محلياً)");
+            }
+        }
+
+        async function pullAppointmentsFromCloud(showNotificationOnChange = false) {
+            const endpoint = getCloudEndpoint();
+            if (!endpoint) {
+                updateSyncBadge("local");
+                return;
+            }
+
+            try {
+                const res = await fetch(endpoint, { cache: "no-store" });
+                if (!res.ok) throw new Error("Cloud read failed");
+                const data = await res.json();
+
+                if (data && Array.isArray(data.items)) {
+                    const incomingSerialized = JSON.stringify(data.items);
+                    if (incomingSerialized !== lastCloudSerialized) {
+                        lastCloudSerialized = incomingSerialized;
+                        appointments = data.items;
+                        localStorage.setItem(STORAGE_KEY, incomingSerialized);
+                        renderAppointments();
+                        if (showNotificationOnChange) {
+                            showToast("تم تحديث المواعيد من جهاز آخر تلقائياً");
+                        }
+                    }
+                    updateSyncBadge("synced");
+                } else if (data === null) {
+                    // إذا كانت قاعدة البيانات فارغة لأول مرة، ارفع البيانات الحالية
+                    await pushAppointmentsToCloud(appointments);
+                }
+            } catch (_) {
+                updateSyncBadge("error");
+            }
+        }
+
+        function startCloudPolling() {
+            if (pollTimer) clearInterval(pollTimer);
+            const endpoint = getCloudEndpoint();
+            if (!endpoint) {
+                updateSyncBadge("local");
+                return;
+            }
+            pullAppointmentsFromCloud(false);
+            pollTimer = setInterval(() => {
+                if (!document.hidden) {
+                    pullAppointmentsFromCloud(true);
+                }
+            }, 5000);
+        }
+
+        document.getElementById("cloudConfigForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            cloudConfig = {
+                dbUrl: document.getElementById("cloudDbUrl").value.trim(),
+                apiKey: document.getElementById("cloudApiKey").value.trim(),
+                roomId: document.getElementById("cloudRoomId").value.trim() || "smile_dental_clinic_main"
+            };
+            localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(cloudConfig));
+            toggleCloudModal(false);
+            startCloudPolling();
+            await pushAppointmentsToCloud(appointments);
+            showToast("تم تفعيل الحفظ التلقائي ومزامنة كل الأجهزة");
+        });
+
+        function clearCloudConfig() {
+            cloudConfig = { ...DEFAULT_CLOUD_CONFIG };
+            localStorage.removeItem(CLOUD_CONFIG_KEY);
+            if (pollTimer) clearInterval(pollTimer);
+            updateSyncBadge("local");
+            toggleCloudModal(false);
+            showToast("تم إيقاف المزامنة السحابية والبقاء على الحفظ المحلي");
+        }
+
+        // ==================== 3. تهيئة البيانات والنموذج ====================
         function initApp() {
-            // عرض تاريخ اليوم في الشريط العلوي
             const today = new Date();
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById("currentDateDisplay").textContent = today.toLocaleDateString('ar-IQ', options);
 
-            // تعيين التاريخ الافتراضي في النموذج لليوم
             const yyyy = today.getFullYear();
             const mm = String(today.getMonth() + 1).padStart(2, '0');
             const dd = String(today.getDate()).padStart(2, '0');
             document.getElementById("appointmentDate").value = `${yyyy}-${mm}-${dd}`;
             document.getElementById("appointmentTime").value = "10:00";
 
-            // تعبئة قائمة الحالات في النموذج وفي دليل الحالات
             populateConditionsUI();
+            loadCloudConfig();
 
-            // تحميل المواعيد المحفوظة أو إنشاء بيانات تجريبية
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
                 try {
                     appointments = JSON.parse(saved);
-                } catch (err) {
+                } catch (_) {
                     appointments = getSampleAppointments();
                 }
             } else {
                 appointments = getSampleAppointments();
-                saveAppointments();
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appointments));
             }
 
             renderAppointments();
+            startCloudPolling();
         }
 
         function populateConditionsUI() {
@@ -632,13 +829,11 @@
             directory.innerHTML = "";
 
             DENTAL_CONDITIONS.forEach(cond => {
-                // إضافة خيار إلى القائمة المنسدلة
                 const option = document.createElement("option");
                 option.value = cond.id;
                 option.textContent = `[أولوية ${cond.priority}] ${cond.name}`;
                 select.appendChild(option);
 
-                // إضافة بطاقة إلى دليل الحالات الشامل
                 const card = document.createElement("div");
                 card.className = "p-4 rounded-2xl border border-slate-200 hover:border-medical-300 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all";
                 card.innerHTML = `
@@ -660,7 +855,6 @@
             });
         }
 
-        // تحديث المدة المقترحة وتلميح الأولوية عند اختيار حالة المريض
         function autoSetDuration() {
             const condId = document.getElementById("patientCondition").value;
             const cond = DENTAL_CONDITIONS.find(c => c.id === condId);
@@ -723,11 +917,13 @@
             ];
         }
 
+        // حفظ تلقائي محلي + سحابي لجميع الأجهزة
         function saveAppointments() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(appointments));
+            pushAppointmentsToCloud(appointments);
         }
 
-        // ==================== 3. إضافة وحذف وتحديث المواعيد ====================
+        // ==================== 4. إضافة وحذف وتحديث المواعيد ====================
         document.getElementById("appointmentForm").addEventListener("submit", function (e) {
             e.preventDefault();
 
@@ -747,12 +943,11 @@
             saveAppointments();
             renderAppointments();
 
-            // إعادة ضبط حقول الاسم والهاتف والملاحظات فقط لتسهيل الإدخال المتتالي
             document.getElementById("patientName").value = "";
             document.getElementById("patientPhone").value = "";
             document.getElementById("patientNotes").value = "";
 
-            showToast("تمت إضافة المراجع وترتيب الجدول حسب الأولوية");
+            showToast("تمت إضافة المراجع وحفظه تلقائياً");
         });
 
         function updateStatus(id, newStatus) {
@@ -766,7 +961,7 @@
                     "in-progress": "داخل العيادة الآن",
                     "completed": "تم العلاج بنجاح"
                 };
-                showToast(`تم تحديث حالة المراجع إلى: ${statusLabels[newStatus]}`);
+                showToast(`تم تحديث الحالة وحفظها: ${statusLabels[newStatus]}`);
             }
         }
 
@@ -774,17 +969,17 @@
             appointments = appointments.filter(a => a.id !== id);
             saveAppointments();
             renderAppointments();
-            showToast("تم حذف الموعد من الجدول");
+            showToast("تم حذف الموعد وحفظ التغيير تلقائياً");
         }
 
         function resetSampleData() {
             appointments = getSampleAppointments();
             saveAppointments();
             renderAppointments();
-            showToast("تمت استعادة المواعيد التجريبية");
+            showToast("تمت استعادة المواعيد التجريبية وحفظها");
         }
 
-        // ==================== 4. الفرز الذكي وعرض القائمة ====================
+        // ==================== 5. الفرز الذكي وعرض القائمة ====================
         function setSortMode(mode) {
             sortMode = mode;
             const pBtn = document.getElementById("sortPriorityBtn");
@@ -800,7 +995,6 @@
             renderAppointments();
         }
 
-        // حساب وقت انتهاء الجلسة بناءً على وقت البداية والمدة
         function calculateEndTime(startTime, durationMinutes) {
             const [hours, mins] = startTime.split(":").map(Number);
             const totalMinutes = hours * 60 + mins + durationMinutes;
@@ -813,7 +1007,6 @@
             const container = document.getElementById("appointmentsList");
             const filterVal = document.getElementById("statusFilter").value;
 
-            // تحديث الإحصائيات
             document.getElementById("statTotal").textContent = appointments.length;
             document.getElementById("statUrgent").textContent = appointments.filter(a => {
                 const c = DENTAL_CONDITIONS.find(item => item.id === a.conditionId);
@@ -822,12 +1015,9 @@
             document.getElementById("statWaiting").textContent = appointments.filter(a => a.status === "waiting").length;
             document.getElementById("statCompleted").textContent = appointments.filter(a => a.status === "completed").length;
 
-            // تصفية القائمة
             let filtered = appointments.filter(a => filterVal === "all" || a.status === filterVal);
 
-            // فرز القائمة
             filtered.sort((a, b) => {
-                // وضع المكتمل في الأسفل دائماً
                 if (a.status === "completed" && b.status !== "completed") return 1;
                 if (a.status !== "completed" && b.status === "completed") return -1;
 
@@ -835,14 +1025,11 @@
                 const condB = DENTAL_CONDITIONS.find(c => c.id === b.conditionId) || { priority: 99 };
 
                 if (sortMode === "priority") {
-                    // أولاً حسب أولوية الحالة الطبية (1 هو الأعلى)
                     if (condA.priority !== condB.priority) {
                         return condA.priority - condB.priority;
                     }
-                    // ثانياً حسب التاريخ ثم الوقت
                     return `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`);
                 } else {
-                    // الفرز حسب التاريخ والوقت فقط
                     return `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`);
                 }
             });
@@ -878,9 +1065,7 @@
                     }">
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                             
-                            <!-- معلومات المراجع والحالة -->
                             <div class="flex items-start gap-3.5">
-                                <!-- رقم الدور / الأولوية -->
                                 <div class="w-11 h-11 rounded-2xl shrink-0 flex flex-col items-center justify-center font-extrabold border ${
                                     isInProgress ? 'bg-medical-600 text-white border-medical-600' : 'bg-medical-50 text-medical-800 border-medical-200'
                                 }">
@@ -892,7 +1077,6 @@
                                     <div class="flex flex-wrap items-center gap-2">
                                         <h3 class="font-extrabold text-slate-900 text-base sm:text-lg ${isCompleted ? 'line-through text-slate-500' : ''}">${apt.name}</h3>
                                         
-                                        <!-- شارة حالة المريض وأولويتها -->
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-bold border ${cond.badgeClass}">
                                             <span class="w-1.5 h-1.5 rounded-full ${cond.dotClass}"></span>
                                             ${cond.name} (أولوية ${cond.priority})
@@ -905,7 +1089,6 @@
                                         ` : ''}
                                     </div>
 
-                                    <!-- تفاصيل الوقت والمدة والهاتف -->
                                     <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-slate-600 font-medium">
                                         <span class="inline-flex items-center gap-1 text-medical-700 font-bold bg-medical-50 px-2.5 py-0.5 rounded-lg">
                                             <i class="ph-bold ph-clock"></i>
@@ -929,7 +1112,6 @@
                                 </div>
                             </div>
 
-                            <!-- أزرار الإجراءات السريعة -->
                             <div class="flex flex-wrap items-center gap-2 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 shrink-0">
                                 ${apt.status !== "in-progress" && !isCompleted ? `
                                     <button 
@@ -975,10 +1157,24 @@
             }).join("");
         }
 
-        // ==================== 5. النوافذ المنبثقة والإشعارات ====================
+        // ==================== 6. النوافذ المنبثقة والإشعارات ====================
         function toggleCasesModal(show) {
             const modal = document.getElementById("casesModal");
             if (show) {
+                modal.classList.remove("hidden");
+                modal.classList.add("flex");
+            } else {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+            }
+        }
+
+        function toggleCloudModal(show) {
+            const modal = document.getElementById("cloudModal");
+            if (show) {
+                document.getElementById("cloudDbUrl").value = cloudConfig.dbUrl || "";
+                document.getElementById("cloudApiKey").value = cloudConfig.apiKey || "";
+                document.getElementById("cloudRoomId").value = cloudConfig.roomId || "smile_dental_clinic_main";
                 modal.classList.remove("hidden");
                 modal.classList.add("flex");
             } else {
@@ -998,7 +1194,6 @@
             }, 3000);
         }
 
-        // تشغيل التهيئة عند تحميل الصفحة
         window.addEventListener("DOMContentLoaded", () => {
             initApp();
             passcodeInput.focus();
